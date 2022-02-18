@@ -26,15 +26,44 @@ button#StartXr
 	height:		200px;
 }
 
+#QRCode
+{
+	position:	absolute;
+	background:	#fff;
+	padding:	0.5em;
+	border:		1px solid black;
+}
+
+#QRCode img
+{
+	display:	block;
+	width:	5cm;
+	height:	5cm;
+}
+
 </style>
 
 
 </head>
 <body>
+<div id=QRCode>
+	<img src="QrCodeWikipedia.svg.png" />
+	<input type="range" id="QrWidthCm" value=5 name="volume" min="5" max="30" oninput="OnQrWidthChanged(this.value)">
+	<output id="QrWidthCmOutput">X</output>cm
+	<script>
+		function OnQrWidthChanged(cm)
+		{
+			if ( !cm )
+				cm = QrWidthCm.value;
+			QrWidthCmOutput.value = cm;
+		}
+		OnQrWidthChanged();	//	intialise
+	</script>
+</div>
 <button id="StartXr">Start XR</button>
 <canvas id=Window></canvas>
 <script type="module">
-import Bootup from './PopXrGrid.js'
+import Bootup from './PopQRXR.js'
 
 function StartXrCallback(Start)
 {

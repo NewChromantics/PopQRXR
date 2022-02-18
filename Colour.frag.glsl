@@ -13,6 +13,7 @@ varying vec3 FragWorldPosition;
 varying vec2 FragLocalUv;
 varying vec2 FragViewUv;
 varying vec3 ClipPosition;
+varying vec3 FragWorldNormal;
 
 varying vec3 FragCameraPosition;
 
@@ -73,73 +74,45 @@ vec3 GetSceneWorldPosition()
 }
 
 
+float Range(float Min,float Max,float Value)
+{
+	return (Value-Min) / (Max-Min);
+}
+
+float Range01(float Min,float Max,float Value)
+{
+	return clamp( Range( Min, Max, Value ), 0.0, 1.0 );
+}
+
+float PhongLightFactor()
+{
+	//	Y is backwards here...
+	vec3 LightWorldPosition = vec3(1,10,0);
+	
+	vec3 DirToLight = normalize(LightWorldPosition - FragWorldPosition);
+	float Dot = dot( FragWorldNormal, DirToLight );
+	Dot = Range( -1.0, 1.0, Dot );
+	return Dot;
+}
+
+vec3 ApplyLighting(vec3 Colour)
+{
+	float Light = PhongLightFactor();
+	float Shadow = 0.0;//GetOccupancyMapShadowFactor( FragWorldPosition );
+
+	Light *= 1.0 - Shadow;
+
+	vec3 DarkColour = Colour - vec3(0.5);	
+	vec3 LightColour = Colour + vec3(0.5);
+	Colour = mix( DarkColour, LightColour, Light );	
+	return Colour;
+}
+
 
 void main()
 {
 	gl_FragColor.w = 1.0;
-	
-	#define HAS_DEPTH	false
-	if ( !HAS_DEPTH )
-	{
-		gl_FragColor.xyz = FragColour;
-		return;
-	}
-	
-	vec4 BEHIND_COLOUR = vec4(1,0,0,0.1);
-	vec4 INFRONT_COLOUR = vec4(FragLocalUv,0,1);
-	/*
-	vec4 CameraWorldPosition4 = CameraToWorldTransform * vec4(0,0,0,1);
-	vec3 CameraWorldPosition = CameraWorldPosition4.xyz / CameraWorldPosition4.www;
-	vec3 SceneWorldPosition = GetSceneWorldPosition();
-	
-	float DistanceToFrag = length(WorldPosition-CameraWorldPosition);
-	float DistanceToRealWorld = length(SceneWorldPosition-CameraWorldPosition);
-	*/
-
-	float FragDistance = -FragCameraPosition.z;
-	float RealDistance = GetViewDepth();
-	gl_FragColor.xyz = vec3(FragDistance,0.0,RealDistance);
-	
-	if ( FragDistance < 0.001 )
-		gl_FragColor = vec4(1,1,0,1);
-	if ( FragDistance < 0.0 )
-		gl_FragColor = vec4(0,1,1,1);
-
-	if ( FragDistance < RealDistance )
-	{
-		gl_FragColor = INFRONT_COLOUR;
-		gl_FragColor.xyz *= RealDistance;
-	}
-	else
-	{
-		gl_FragColor = BEHIND_COLOUR;
-		gl_FragColor.xyz *= RealDistance;
-		discard;
-	}
-
-	/*
-	//	clipped by scene
-	//	gr: tolerance so we dont clip when rendering the scene test billboards
-	float Tolerance = 0.0001;
-	if ( SceneCameraPosition.z+Tolerance < CameraPosition.z )
-	{
-		gl_FragColor = vec4(1,0,0,1);
-		discard;
-		return;
-	}
-	
-	if ( WorldPosition
-
-	gl_FragColor = vec4( Colour.xyz, 1 );
-
-	if ( MuteColour )
-		gl_FragColor.xyz = Colour.xxx;
-	else if ( InvertColour )
-		gl_FragColor.xyz = Colour.zxy;
-	
-	float Depth = GetWorldDepth();
-	gl_FragColor.xyz = vec3(Depth,Depth,Depth);
-	*/
+	gl_FragColor.xyz = ApplyLighting( FragColour.xyz );
 }
 
 

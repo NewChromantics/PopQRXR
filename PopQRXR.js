@@ -16,10 +16,9 @@ AppCamera.Position = [0,0,0];
 AppCamera.LookAt = [0,0,-1];
 let LastXrRenderTimeMs = null;
 let DefaultDepthTexture = CreateRandomImage(16,16);
-let CubePosition = AppCamera.LookAt.slice();
-let CubeSize = 0.02;
-
-let CubesLocalToWorldTransform = [1,0,0,0,	0,1,0,0,	0,0,1,0,	0,0,0,1];
+let CubeSize = 0.05;
+let CubeColour = GetRandomColour();
+let CubeLocalToWorldTransform = [1,0,0,0,	0,1,0,0,	0,0,1,0,	AppCamera.LookAt.slice(),1];
 
 //	callback if tracking image found
 function OnTrackedImage(LocalToWorld)
@@ -51,38 +50,6 @@ function RegisterAssets()
 }
 
 
-const CubeCount = 1000;
-function GetPositionN(xyz,Index)
-{
-	const Div = Math.floor(Math.cbrt(CubeCount));
-	let x = (Index % Div);
-	let y = Math.floor( (Index % (Div*Div)) / Div );
-	let z = Math.floor( Index / (Div*Div) );
-
-	x -= Div/2;
-	y -= Div/2;
-	z -= Div/2;
-	x *= CubeSize*2.5;
-	y *= CubeSize*2.5;
-	z *= CubeSize*2.5;
-	x += xyz[0];
-	y += xyz[1];
-	z += xyz[2];
-	//return CreateTranslationMatrix(x,y,z);
-	return [x,y,z];
-}
-function GetColourN(xyz,Index)
-{
-	return GetRandomColour();
-	const r = lerp( 0.4, 0.9, Math.random() );
-	const b = lerp( 0.4, 0.9, Math.random() );
-	const g = lerp( 0.4, 0.9, Math.random() );
-	return [r,g,b];
-}
-
-//const LocalToWorldTransforms = new Float32Array( new Array(CubeCount).fill(CubePosition.slice()).map( GetPositionN ).flat(2) );
-const WorldPositions = new Array(CubeCount).fill(CubePosition.slice()).map( GetPositionN );
-const Colours = new Float32Array( new Array(WorldPositions.length).fill(0).map( GetColourN ).flat(2) );
 
 function GetSceneRenderCommands(RenderContext,Camera,Viewport=[0,0,1,1])
 {
@@ -119,9 +86,8 @@ function GetSceneRenderCommands(RenderContext,Camera,Viewport=[0,0,1,1])
 	const Geo = AssetManager.GetAsset('Cube01',RenderContext);
 	const Shader = AssetManager.GetAsset(CubeShader,RenderContext);
 	const Uniforms = {};
-	Uniforms.LocalToWorldTransform = CubesLocalToWorldTransform;
-	Uniforms.WorldPosition = WorldPositions;
-	Uniforms.Colour = Colours;
+	Uniforms.LocalToWorldTransform = CubeLocalToWorldTransform;
+	Uniforms.Colour = CubeColour;
 	Uniforms.WorldToCameraTransform = Camera.GetWorldToCameraMatrix();
 	Uniforms.CameraToWorldTransform = Camera.GetLocalToWorldMatrix();
 	Uniforms.CameraProjectionTransform = Camera.GetProjectionMatrix(Viewport);
