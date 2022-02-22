@@ -5,15 +5,15 @@
 
 body
 {
-	display:	flex;
 	margin:		0px;
 }
 canvas
 {
 	xflex:	1;
 	/* with just flex, the canvas gets stuck too large...*/
-	width:		100%;
-	height:		100%;
+	display:	inline-block;
+	width:		100vw;
+	height:		100vh;
 }
 
 button#StartXr
@@ -21,7 +21,7 @@ button#StartXr
 	display:	none;
 	position:	absolute;
 	top:		0vh;
-	left:		0vw;
+	left:		20vw;
 	width:		200px;
 	height:		200px;
 }
@@ -39,6 +39,16 @@ button#StartXr
 	display:	block;
 	width:	5cm;
 	height:	5cm;
+}
+
+video
+{
+	position:	absolute;
+	left:		0vw;
+	top:		30vh;
+	height:		10vh;
+	background:	red;
+	display:	inline-block;
 }
 
 </style>

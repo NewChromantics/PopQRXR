@@ -144,13 +144,21 @@ async function XrLoop(RenderContext,XrOnWaitForCallback,OnStarted)
 		FrameCounter.Add();
 	}
 	
-	const CatJpg = await Pop.FileSystem.LoadFileAsImageAsync('Cat.jpg');
 	const TrackedImages = {};
-	TrackedImages.Cat =
+	
+	try
 	{
-		Image:CatJpg,
-		WidthMetres:0.10,
-	};
+		const CatJpg = await Pop.FileSystem.LoadFileAsImageAsync('Cat.jpg');
+		TrackedImages.Cat =
+		{
+			Image:CatJpg,
+			WidthMetres:0.10,
+		};
+	}
+	catch(e)
+	{
+		console.error(e);
+	}
 
 	while ( true )
 	{
@@ -271,7 +279,7 @@ export class WebCamera
 		}
 
 		const VideoElement = document.createElement('video');
-		//document.body.appendChild(VideoElement);
+		document.body.appendChild(VideoElement);
 		VideoElement.srcObject = Stream;
 		VideoElement.autoplay = true;
 		VideoElement.onloadedmetadata = OnLoaded;
@@ -330,8 +338,10 @@ async function WaitForQRCode()
 			const Value = Marker.rawValue;//"http://en.m.wikipedia.org"
 			const Uvs = Marker.cornerPoints.map( PxToUv );
 			console.log(`Found ${Marker.format} ${Value} at ${Uvs}`);
-			return Uvs;
+			//return Uvs;
 		}
+		requestAnimationFrame(()=>{});
+		requestAnimationFrame(()=>{});
 	}
 }
 		
@@ -347,14 +357,17 @@ export default async function Bootup(XrOnWaitForCallback)
 	}
 	const RenderThread = RenderLoop('Window',null,OnRenderContextCreated);
 	
-	const QrCode = await WaitForQRCode();
+	WaitForQRCode();
+	XrLoop(RenderContext,XrOnWaitForCallback,OnXrStarted);
+	//const QrCode = await WaitForQRCode();
 	
 	function OnXrStarted(Device)
 	{
+	//WaitForQRCode();
 		//	turn the 2D QR code into an anchor in xr
 		console.log(`xr started, do something with QR code uvs`);
 	}
 	
 	//	create xr session
-	await XrLoop(RenderContext,XrOnWaitForCallback,OnXrStarted);
+	//await XrLoop(RenderContext,XrOnWaitForCallback,OnXrStarted);
 }
